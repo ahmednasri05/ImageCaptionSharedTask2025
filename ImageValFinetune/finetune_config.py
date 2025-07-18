@@ -98,9 +98,7 @@ YAML_TEMPLATE = """### model
 model_name_or_path: {model_name}
 image_max_pixels: {image_max_pixels}
 trust_remote_code: true
-load_in_4bit: true
-bnb_4bit_compute_dtype: float16
-bnb_4bit_quant_type: nf4
+
 
 ### method
 stage: sft

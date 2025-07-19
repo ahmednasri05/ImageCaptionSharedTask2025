@@ -11,6 +11,7 @@ import torch
 from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
 from PIL import Image
 from tqdm import tqdm
+from torchvision.transforms import functional as F
 
 import finetune_config as config
 import finetune_utils as utils
@@ -241,10 +242,13 @@ class ArabicImageCaptionTrainer:
         # Load model and processor
         try:
             print("Loading fine-tuned model...")
+            bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True, bnb_4bit_use_double_quant=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16
+            )
+
+            # Load model and tokenizer
             model = Qwen2VLForConditionalGeneration.from_pretrained(
-                checkpoint_path,
-                torch_dtype=torch.bfloat16,
-                device_map="auto"
+                checkpoint_path, device_map="auto", torch_dtype=torch.bfloat16, quantization_config=bnb_config
             )
             processor = AutoProcessor.from_pretrained(config.DEFAULT_MODEL_NAME)
             print("✅ Model loaded successfully")
@@ -304,8 +308,10 @@ class ArabicImageCaptionTrainer:
         processor
     ) -> Dict:
         """Process a single image and generate caption."""
-        image = Image.open(image_path)
-        
+        image = Image.open(image_path).convert("RGB")
+        image = F.resize(image, (512, 512))
+        torch.cuda.empty_cache()
+
         # Create prompt
         messages = [
             {
@@ -316,21 +322,22 @@ class ArabicImageCaptionTrainer:
                 ]
             }
         ]
-        
+
         # Process and generate
         text = processor.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
         inputs = processor(text=[text], images=[image], return_tensors="pt", padding=True)
         inputs = inputs.to("cuda")
-        
-        with torch.no_grad():
+
+        model.eval().half()
+        with torch.inference_mode():
             outputs = model.generate(
                 **inputs,
                 pad_token_id=processor.tokenizer.eos_token_id,
                 **config.GENERATION_CONFIG
             )
-        
+
         response = processor.decode(outputs[0], skip_special_tokens=True)
         
         # Extract caption

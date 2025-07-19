@@ -5,7 +5,7 @@ Configuration file for Arabic Image Captioning Fine-tuning
 import os
 
 # Model configuration
-DEFAULT_MODEL_NAME = "Qwen/Qwen2.5-VL-7B-Instruct"
+DEFAULT_MODEL_NAME = "Qwen/Qwen2.5-VL-3B-Instruct"
 IMAGE_MAX_PIXELS = 131072
 
 # Training configuration
@@ -98,7 +98,7 @@ YAML_TEMPLATE = """### model
 model_name_or_path: {model_name}
 image_max_pixels: {image_max_pixels}
 trust_remote_code: true
-quantization_bit: 4
+
 
 ### method
 stage: sft

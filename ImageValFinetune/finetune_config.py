@@ -5,7 +5,7 @@ Configuration file for Arabic Image Captioning Fine-tuning
 import os
 
 # Model configuration
-DEFAULT_MODEL_NAME = "Qwen/Qwen2.5-VL-7B-Instruct"
+DEFAULT_MODEL_NAME = "Qwen/Qwen2.5-VL-7B-Instruct-AWQ"
 IMAGE_MAX_PIXELS = 131072
 
 # Training configuration
@@ -101,6 +101,7 @@ trust_remote_code: true
 load_in_4bit: true
 bnb_4bit_compute_dtype: float16
 bnb_4bit_quant_type: nf4
+
 
 ### method
 stage: sft
